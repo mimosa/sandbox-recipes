@@ -1,0 +1,47 @@
+# /etc/nginx/conf/sites-enabled/sandbox
+# SANDBOX
+# Maintainer: @mimosa
+# App Version: 0.2
+
+set $app_path "/home/mimosa/sandbox";
+
+upstream sandbox_cluster {
+  server unix://$app_path/tmp/sandbox_puma.socket;
+}
+
+server {
+  listen 80;
+  server_name sexycast.me;
+  server_tokens off;
+  root $app_path/public;
+
+  # individual nginx logs for this gitlab vhost
+  access_log  $app_path/log/access.log;
+  error_log   $app_path/log/error.log;
+
+  location ~ ^/(font|img|images|javascripts|stylesheets|uploads)/.* {
+    expires max;
+    add_header Cache-Control public;
+    access_log off;
+  }
+
+  location / {
+    try_files $uri $uri/index.html $uri.html @sandbox_cluster;
+  }
+
+  location @sandbox_cluster {
+    
+    proxy_max_temp_file_size 0;
+    proxy_connect_timeout    300;
+    proxy_read_timeout       300;
+    proxy_redirect           off;
+    
+    proxy_set_header   X-Forwarded-Proto $scheme;
+    proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+    proxy_set_header   Host              $http_host;
+    proxy_set_header   X-Real-IP         $remote_addr;
+
+    proxy_pass http://sandbox_cluster;
+  }
+}
+
