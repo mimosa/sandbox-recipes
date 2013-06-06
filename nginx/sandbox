@@ -3,21 +3,19 @@
 # Maintainer: @mimosa
 # App Version: 0.2
 
-set $app_path "/home/mimosa/sandbox";
-
 upstream sandbox_cluster {
-  server unix://$app_path/tmp/sandbox_puma.socket;
+  server unix:///home/mimosa/sandbox/tmp/sandbox_puma.socket;
 }
 
 server {
   listen 80;
   server_name sexycast.me;
   server_tokens off;
-  root $app_path/public;
+  root /home/mimosa/sandbox/public;
 
   # individual nginx logs for this gitlab vhost
-  access_log  $app_path/log/access.log;
-  error_log   $app_path/log/error.log;
+  access_log  /home/mimosa/sandbox/log/access.log;
+  error_log   /home/mimosa/sandbox/log/error.log;
 
   location ~ ^/(font|img|images|javascripts|stylesheets|uploads)/.* {
     expires max;
